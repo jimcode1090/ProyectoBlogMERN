@@ -1,6 +1,7 @@
 const dotenv = require('dotenv');
 dotenv.config();
 const express = require('express');
+const cors = require('cors');
 const Post = require('./models/Post/Post');
 const connectDB = require('./utils/connectDB');
 
@@ -15,11 +16,11 @@ const PORT = 5000;
 //Middlewares
 app.use(express.json()); //Pass json data
 // corse middleware
-// const corsOptions = {
-//   origin: ["http://localhost:5173"],
-//   credentials: true,
-// };
-// app.use(corse(corsOptions));
+const corsOptions = {
+  origin: ["http://localhost:5173"],
+  credentials: true,
+};
+app.use(cors(corsOptions));
 
 // ! Create post
 app.post("/api/v1/posts/create", async (req, res) => {
@@ -38,6 +39,68 @@ app.post("/api/v1/posts/create", async (req, res) => {
       res.json(error);
     }
   });
+// ! List posts
+app.get('/api/v1/posts', async (req, res) => {
+  try {
+    const posts = await Post.find();
+    res.json({
+      status: 'success',
+      message: 'Posts fetched successfully',
+      posts
+    })
+  }catch (error) {
+    console.log(error);
+    res.json(error);
+  }
+})
+
+// ! Update post
+app.put('/api/v1/posts/:id', async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const postFound = await Post.findById(postId);
+    if(!postFound) {
+      throw new Error('Post not found');
+    }
+
+    const updatedPost = await Post.findByIdAndUpdate(postId, {
+      title: req.body.title,
+      description: req.body.description
+    }, {new: true});
+
+    res.json({
+      status: 'success',
+      message: 'Post updated successfully',
+      updatedPost
+    })
+
+
+  }catch (error) {
+    console.log(error);
+    res.json(error);
+  }
+})
+
+// ! Get post
+app.get('/api/v1/posts/:id', async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const postFound = await Post.findById(postId);
+    if(!postFound) {
+      throw new Error('Post not found');
+    }
+    res.json({
+      status: 'success',
+      message: 'Post fetched successfully',
+      postFound
+    })
+
+  }catch (error) {
+    console.log(error);
+    res.json(error);
+  }
+})
+
 
 
 
