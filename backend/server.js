@@ -1,9 +1,9 @@
-const dotenv = require('dotenv');
+const dotenv = require("dotenv");
 dotenv.config();
-const express = require('express');
-const cors = require('cors');
-const Post = require('./models/Post/Post');
-const connectDB = require('./utils/connectDB');
+const express = require("express");
+const cors = require("cors");
+const connectDB = require("./utils/connectDB");
+const postRouter = require("./router/post/postsRouter");
 
 //Call the db
 connectDB();
@@ -22,119 +22,28 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// ! Create post
-app.post("/api/v1/posts/create", async (req, res, next) => {
-  try {
-    //get the payload
-    const {title, description} = req.body;
-  
-    //fin the post by title
-    const postFound = await Post.findOne({title});
-    if (postFound) {
-      throw new Error("Post already exists");
-    }
-
-    const postCreated = await Post.create({ title, description});
-    res.json({
-      status: "success",
-      message: "Post created successfully",
-      postCreated,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-// ! List posts
-app.get('/api/v1/posts', async (req, res) => {
-  try {
-    const posts = await Post.find();
-    res.json({
-      status: 'success',
-      message: 'Posts fetched successfully',
-      posts
-    })
-  } catch (error) {
-    console.log(error);
-    res.json(error);
-  }
-});
-
-// ! Update post
-app.put('/api/v1/posts/:postId', async (req, res) => {
-  try {
-    const postId = req.params.postId;
-    const postFound = await Post.findById(postId);
-    if (!postFound) {
-      throw new Error('Post not found');
-    }
-
-    const updatedPost = await Post.findByIdAndUpdate(postId, {
-      title: req.body.title,
-      description: req.body.description
-    }, { new: true });
-
-    res.json({
-      status: 'success',
-      message: 'Post updated successfully',
-      updatedPost
-    })
+//! Routes handlers
+app.use('/', postRouter)
 
 
-  } catch (error) {
-    console.log(error);
-    res.json(error);
-  }
-});
-
-// ! Get post
-app.get('/api/v1/posts/:postId', async (req, res) => {
-  try {
-    const postId = req.params.postId;
-    const postFound = await Post.findById(postId);
-    if (!postFound) {
-      throw new Error('Post not found');
-    }
-    res.json({
-      status: 'success',
-      message: 'Post fetched successfully',
-      postFound
-    })
-
-  } catch (error) {
-    console.log(error);
-    res.json(error);
-  }
-});
-
-//! Delete post
-app.delete('/api/v1/posts/:postId', async (req, res) => {
-  try {
-    const postId = req.params.postId;
-    await Post.findByIdAndDelete(postId);
-
-    res.json({
-      status: 'success',
-      message: 'Post deleted successfully',
-    })
-
-  } catch (error) {
-    console.log(error);
-    res.json(error);
-  }
-});
-
-//! Error handdling middleware
-app.use((err, req, res, next) => {
-  // prepare the error message
-  const message = err.message || 'Internal Server Error';
-  const stack = err.stack || 'no stack trace';
-  console.log(message);
-  res.status(500).json({
-    message,
-    stack
+//! Not found
+app.use((req, res) => {
+  res.status(404).json({
+    message: "Route not found on our server",
   });
 });
 
 
+//! Error handdling middleware
+app.use((err, req, res, next) => {
+  // prepare the error message
+  const message = err.message || "Internal Server Error";
+  const stack = err.stack || "no stack trace";
+  console.log(message);
+  res.status(500).json({
+    message,
+    stack,
+  });
+});
 
 app.listen(PORT, console.log(`Servidor corriendo en el puerto ${PORT}`));
