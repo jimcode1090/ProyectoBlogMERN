@@ -1,5 +1,5 @@
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useParams } from "react-router-dom";
@@ -8,10 +8,20 @@ import { fetchPostAPI } from "../../APIServices/posts/postsAPI";
 const UpdatePost = () => {
   const { postId } = useParams();
 
+  const { isError, isLoading, isSuccess, data, error } = useQuery({
+    queryKey: ["post-details"],
+    queryFn: () => fetchPostAPI(postId),
+  });
+
+  const postMutation = useMutation({
+    mutationKey: ["update-post"],
+    mutationFn: () => {},
+  });
+
   const formik = useFormik({
     initialValues: {
-      title: "",
-      description: "",
+      title: data?.postFound.title || "",
+      description: data?.postFound.description || "",
     },
     validationSchema: Yup.object({
       title: Yup.string().required("El titulo es requerido"),
@@ -25,13 +35,6 @@ const UpdatePost = () => {
       postMutation.mutate(postData);
     },
   });
-
-  const { isError, isLoading, isSuccess, data, error } = useQuery({
-    queryKey: ["post-details"],
-    queryFn: () => fetchPostAPI(postId),
-  });
-
-  console.log(data);
 
   return (
     <div>
