@@ -20,3 +20,16 @@ export const fetchPostAPI = async (postId) => {
   const response = await axios.get(`${BASE_URL}/${postId}`);
   return response.data;
 }
+
+export const updatePostAPI = async (postData) => {
+  const response = await axios.put(`${BASE_URL}/${postData?.postId}`, {
+    title: postData.title,
+    description: postData.description,
+  });
+  return response.data;
+};
+
+export const deletePostAPI = async (postId) => {
+  const response = await axios.delete(`${BASE_URL}/${postId}`);
+  return response.data;
+}

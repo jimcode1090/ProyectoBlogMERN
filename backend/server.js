@@ -23,22 +23,27 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // ! Create post
-app.post("/api/v1/posts/create", async (req, res) => {
-    try {
-      //get the payload
-      const postData = req.body;
-      console.log(req.body);
-      const postCreated = await Post.create(postData);
-      res.json({
-        status: "success",
-        message: "Post created successfully",
-        postCreated,
-      });
-    } catch (error) {
-      console.log(error);
-      res.json(error);
+app.post("/api/v1/posts/create", async (req, res, next) => {
+  try {
+    //get the payload
+    const {title, description} = req.body;
+  
+    //fin the post by title
+    const postFound = await Post.findOne({title});
+    if (postFound) {
+      throw new Error("Post already exists");
     }
-  });
+
+    const postCreated = await Post.create({ title, description});
+    res.json({
+      status: "success",
+      message: "Post created successfully",
+      postCreated,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 // ! List posts
 app.get('/api/v1/posts', async (req, res) => {
   try {
@@ -48,25 +53,25 @@ app.get('/api/v1/posts', async (req, res) => {
       message: 'Posts fetched successfully',
       posts
     })
-  }catch (error) {
+  } catch (error) {
     console.log(error);
     res.json(error);
   }
-})
+});
 
 // ! Update post
-app.put('/api/v1/posts/:id', async (req, res) => {
+app.put('/api/v1/posts/:postId', async (req, res) => {
   try {
-    const postId = req.params.id;
+    const postId = req.params.postId;
     const postFound = await Post.findById(postId);
-    if(!postFound) {
+    if (!postFound) {
       throw new Error('Post not found');
     }
 
     const updatedPost = await Post.findByIdAndUpdate(postId, {
       title: req.body.title,
       description: req.body.description
-    }, {new: true});
+    }, { new: true });
 
     res.json({
       status: 'success',
@@ -75,18 +80,18 @@ app.put('/api/v1/posts/:id', async (req, res) => {
     })
 
 
-  }catch (error) {
+  } catch (error) {
     console.log(error);
     res.json(error);
   }
-})
+});
 
 // ! Get post
-app.get('/api/v1/posts/:id', async (req, res) => {
+app.get('/api/v1/posts/:postId', async (req, res) => {
   try {
-    const postId = req.params.id;
+    const postId = req.params.postId;
     const postFound = await Post.findById(postId);
-    if(!postFound) {
+    if (!postFound) {
       throw new Error('Post not found');
     }
     res.json({
@@ -95,12 +100,40 @@ app.get('/api/v1/posts/:id', async (req, res) => {
       postFound
     })
 
-  }catch (error) {
+  } catch (error) {
     console.log(error);
     res.json(error);
   }
-})
+});
 
+//! Delete post
+app.delete('/api/v1/posts/:postId', async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    await Post.findByIdAndDelete(postId);
+
+    res.json({
+      status: 'success',
+      message: 'Post deleted successfully',
+    })
+
+  } catch (error) {
+    console.log(error);
+    res.json(error);
+  }
+});
+
+//! Error handdling middleware
+app.use((err, req, res, next) => {
+  // prepare the error message
+  const message = err.message || 'Internal Server Error';
+  const stack = err.stack || 'no stack trace';
+  console.log(message);
+  res.status(500).json({
+    message,
+    stack
+  });
+});
 
 
 

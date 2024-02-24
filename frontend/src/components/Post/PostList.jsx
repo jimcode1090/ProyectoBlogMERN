@@ -1,16 +1,25 @@
-import { useQuery } from "@tanstack/react-query";
 import React from "react";
-import { fetchAllPostsAPI } from "../../APIServices/posts/postsAPI";
+import {useMutation, useQuery} from "@tanstack/react-query";
+import {deletePostAPI, fetchAllPostsAPI} from "../../APIServices/posts/postsAPI";
 import { Link } from "react-router-dom";
 
 const PostList = () => {
 
-  const { isError, isLoading, data, error, isSuccess } = useQuery({
+  const { isError, isLoading, data, error, isSuccess, refetch } = useQuery({
     queryKey: ["list-posts"],
     queryFn: fetchAllPostsAPI,
   });
 
-  console.log(data);
+  const postMutation = useMutation({
+      mutationKey: ["delete-post"],
+      mutationFn: deletePostAPI,
+  })
+
+  const deleteHandler = async (postId) => {
+      postMutation.mutateAsync(postId).then(()=>{
+        refetch();
+      }).catch((e) => console.log(e));
+  }
 
   return (
     <div>
@@ -26,6 +35,9 @@ const PostList = () => {
             <Link to={`/posts/${post?._id}`}>
               <button>Editar</button>
             </Link>
+            <button
+              onClick={() => deleteHandler(post?._id)}
+            >Eliminar</button>
           </div>
         );
       })}

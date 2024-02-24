@@ -3,19 +3,19 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useParams } from "react-router-dom";
-import { fetchPostAPI } from "../../APIServices/posts/postsAPI";
+import {fetchPostAPI, updatePostAPI} from "../../APIServices/posts/postsAPI";
 
 const UpdatePost = () => {
   const { postId } = useParams();
 
-  const { isError, isLoading, isSuccess, data, error } = useQuery({
+  const {data} = useQuery({
     queryKey: ["post-details"],
     queryFn: () => fetchPostAPI(postId),
   });
 
   const postMutation = useMutation({
     mutationKey: ["update-post"],
-    mutationFn: () => {},
+    mutationFn: updatePostAPI,
   });
 
   const formik = useFormik({
@@ -23,6 +23,7 @@ const UpdatePost = () => {
       title: data?.postFound.title || "",
       description: data?.postFound.description || "",
     },
+    enableReinitialize: true,
     validationSchema: Yup.object({
       title: Yup.string().required("El titulo es requerido"),
       description: Yup.string().required("La descripción es requerida"),
@@ -31,18 +32,24 @@ const UpdatePost = () => {
       const postData = {
         title: values.title,
         description: values.description,
+        postId
       };
       postMutation.mutate(postData);
     },
   });
 
+  const isLoading = postMutation.isPending;
+  const isError = postMutation.isError;
+  const isSuccess = postMutation.isSuccess;
+  const error = postMutation.error;
+
   return (
     <div>
       <h1>Actualizar post - {data?.postFound.title}</h1>
       <div>
-        {/* {isLoading && <p>Cargando...</p>}
-        {isSuccess && <p>Post creado exitosamente</p>}
-        {isError && <p>{error.message}</p>} */}
+        {isLoading && <p>Cargando...</p>}
+        {isSuccess && <p>Post actualizado exitosamente</p>}
+        {isError && <p>{error.message}</p>}
 
         <form onSubmit={formik.handleSubmit}>
           <input

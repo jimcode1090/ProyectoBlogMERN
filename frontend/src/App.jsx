@@ -1,6 +1,4 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { useState } from "react";
-
 import CreatePost from "./components/Post/CreatePost";
 import PostList from "./components/Post/PostList";
 import PublicNavbar from "./components/Navbar/PublicNavbar";
@@ -8,7 +6,6 @@ import HomePage from "./components/Home/HomePage";
 import UpdatePost from "./components/Post/UpdatePost";
 
 function App() {
-  const [count, setCount] = useState(0);
 
   return (
     <BrowserRouter>
