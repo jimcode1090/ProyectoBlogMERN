@@ -6,8 +6,6 @@ const postController = {
     //get the payload
     const { description } = req.body;
 
-    //fin the post by title
-
     const postCreated = await Post.create({ description });
     res.json({
       status: "success",
